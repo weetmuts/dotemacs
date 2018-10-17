@@ -1,0 +1,127 @@
+;;
+;; Fredrik Öhrström's new generation .emacs file!
+;;
+;; As a whole, licensed to you under the simplified BSD 2-clause license.
+;; But please feel free to copy any parts you find nice you find here.
+;;
+
+;; First invoke 'compile and set command line.
+;; Then trigger recompile C-c C-c (press and hold ctrl then type c twice.)
+;; Next error: Ctrl-PageDown
+;; Prev error: Ctrl-PageUp
+
+(set-language-environment "UTF-8")
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+
+;; disable lockfiles
+;; see http://www.gnu.org/software/emacs/manual/html_node/emacs/Interlocking.html
+(setq create-lockfiles nil)
+
+;; store all backup files in the tmp dir
+;; http://www.gnu.org/software/emacs/manual/html_node/emacs/Backup-Names.html
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+
+;; store all autosave files in the tmp dir
+;; http://www.gnu.org/software/emacs/manual/html_node/emacs/Auto-Save-Files.html
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
+
+;; autosave the undo-tree history
+(setq undo-tree-history-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq undo-tree-auto-save-history t)
+
+;; Clean out any trailing whitespace in files before saving.
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+(setq c-default-style "bsd" c-basic-offset 4)
+;;(setq c-default-style "linux" c-basic-offset 4)
+
+;;(c-set-offset 'access-label 0)
+;;(c-set-offset 'label 0)
+
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+(global-set-key (kbd "C-c C-c") 'compile)
+
+;;(put 'scroll-left 'disabled nil)
+
+(load-library "hideshow")
+(global-set-key (kbd "M-<up>") 'hs-show-all)
+(global-set-key (kbd "M-<down>") 'hs-hide-all)
+(global-set-key (kbd "M-<RET>") 'hs-toggle-hiding)
+;;(global-set-key (kbd "C-\\") 'toggle-selective-display)
+
+(add-hook 'c-mode-common-hook   'hs-minor-mode)
+(add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
+(add-hook 'java-mode-hook       'hs-minor-mode)
+(add-hook 'lisp-mode-hook       'hs-minor-mode)
+(add-hook 'perl-mode-hook       'hs-minor-mode)
+(add-hook 'sh-mode-hook         'hs-minor-mode)
+
+(defun find-make-compile ()
+  "Travel up the path, find a Makefile and `compile'."
+  (interactive)
+  (when (locate-dominating-file default-directory "Makefile")
+    (with-temp-buffer
+      (cd (locate-dominating-file default-directory "Makefile"))
+       (recompile))))
+
+(global-unset-key (kbd "C-<next>"))
+(global-unset-key (kbd "C-<prior>"))
+
+(global-set-key (kbd "C-<next>") 'next-error)
+(global-set-key (kbd "C-<prior>") 'previous-error)
+
+(add-hook
+ 'c++-mode-hook
+ (lambda ()
+   (local-set-key (kbd "C-c C-c") #'find-make-compile)
+   (local-set-key (kbd "[tab]") #'hippie-expand)))
+
+
+(add-hook
+ 'c-mode-hook
+ (lambda ()
+   (local-set-key (kbd "C-c C-c") #'find-make-compile)
+   (local-set-key (kbd "[tab]") #'hippie-expand)))
+
+(add-hook
+ 'makefile-mode-hook
+ (lambda ()
+   (local-set-key (kbd "C-c C-c") #'find-make-compile)
+   (local-set-key (kbd "[tab]") #'hippie-expand)))
+
+(add-hook
+ 'java-mode-hook
+ (lambda ()
+   (local-set-key (kbd "C-c C-c") #'find-make-compile)
+   (local-set-key (kbd "[tab]") #'hippie-expand)))
+
+(put 'downcase-region 'disabled nil)
+
+(defun search-for-mytext () (interactive)
+       (let* ( (searchterm (read-string "Search term: " ""))
+               (result (shell-command-to-string (concat "find . -name " searchterm))))
+
+         (get-buffer-create 'searchinn)
+         (switch-to-buffer 'searchinn)
+         (insert result)))
+
+(global-set-key "\M-s" 'search-for-mytext)
+
+(global-set-key "\C-x\C-x" 'ag)
+
+(require 'package)
+(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                    (not (gnutls-available-p))))
+       (proto (if no-ssl "http" "https")))
+  ;; Comment/uncomment these two lines to enable/disable MELPA and MELPA Stable as desired
+  ;;(add-to-list 'package-archives (cons "melpa" (concat proto "://melpa.org/packages/")) t)
+  (add-to-list 'package-archives (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
+  (when (< emacs-major-version 24)
+    ;; For important compatibility libraries like cl-lib
+    (add-to-list 'package-archives (cons "gnu" (concat proto "://elpa.gnu.org/packages/")))))
+(package-initialize)
