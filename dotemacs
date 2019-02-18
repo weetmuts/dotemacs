@@ -12,9 +12,24 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 
+;; smart-tab.el is found here: https://github.com/genehack/smart-tab
 (require 'smart-tab)
 
+;; web-mode.el is found here: http://web-mode.org/
+(require 'web-mode)
+
 (global-smart-tab-mode 1)
+
+(add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.tpl\\.php\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.[agj]sp\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.as[cp]x\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.erb\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.hbs\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.mustache\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.djhtml\\'" . web-mode))
+
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 
 ;(defun buffer-background-red ()
 ;  (interactive)
@@ -87,7 +102,9 @@
 
 (defun find-makefile-then-ag (lookfor)
   "Travel up the path, find a Makefile and `ag'."
-  (interactive "sSilver search: ")
+  (interactive (list
+                (read-string (format "Silver search (%s): " (thing-at-point 'word))
+                             nil nil (thing-at-point 'word))))
   (with-temp-buffer
     (ag lookfor (locate-dominating-file default-directory "Makefile"))))
 
@@ -157,10 +174,10 @@
 ;; Hide the menu bar
 (menu-bar-mode -1)
 
-(add-to-list 'auto-mode-alist '("\\.hbs\\'" . html-mode))
+(add-to-list 'auto-mode-alist '("\\.groovy\\'" . java-mode))
 
 (set-face-foreground 'font-lock-comment-face "yellow")
 
 ;;load-theme 'misterioso t
 
-(setq compilation-scroll-output t)
+;;(setq compilation-scroll-output t)
