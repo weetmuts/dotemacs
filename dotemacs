@@ -18,6 +18,10 @@
 ;; web-mode.el is found here: http://web-mode.org/
 (require 'web-mode)
 
+;; xmq-mode.el is found here: http://github.com/weetmuts/xmq/
+(require 'xmq-mode)
+(global-set-key "\C-t" 'xmq-buffer)
+
 (global-smart-tab-mode 1)
 
 (add-to-list 'auto-mode-alist '("\\.phtml\\'" . web-mode))
@@ -44,6 +48,8 @@
 ;; Enable whitespace mode to show trailing whitespace
 (global-set-key "\C-c_w" 'whitespace-mode)
 (global-set-key "\C-c_t" 'whitespace-toggle-options)
+
+(global-set-key "\M-d" 'delete-horizontal-space)
 
 ;; disable lockfiles
 ;; see http://www.gnu.org/software/emacs/manual/html_node/emacs/Interlocking.html
@@ -79,18 +85,17 @@
 
 ;;(put 'scroll-left 'disabled nil)
 
-(load-library "hideshow")
-(global-set-key (kbd "M-<up>") 'hs-show-all)
-(global-set-key (kbd "M-<down>") 'hs-hide-all)
-(global-set-key (kbd "M-<RET>") 'hs-toggle-hiding)
-;;(global-set-key (kbd "C-\\") 'toggle-selective-display)
+;;(global-set-key (kbd "M-<up>") 'hs-show-all)
+;;(global-set-key (kbd "M-<down>") 'hs-hide-all)
+(global-set-key (kbd "M-<right>") 'outline-toggle-children)
 
-(add-hook 'c-mode-common-hook   'hs-minor-mode)
-(add-hook 'emacs-lisp-mode-hook 'hs-minor-mode)
-(add-hook 'java-mode-hook       'hs-minor-mode)
-(add-hook 'lisp-mode-hook       'hs-minor-mode)
-(add-hook 'perl-mode-hook       'hs-minor-mode)
-(add-hook 'sh-mode-hook         'hs-minor-mode)
+(add-hook 'c-mode-common-hook   'outline-minor-mode)
+(add-hook 'emacs-lisp-mode-hook 'outline-minor-mode)
+(add-hook 'java-mode-hook       'outline-minor-mode)
+(add-hook 'lisp-mode-hook       'outline-minor-mode)
+(add-hook 'perl-mode-hook       'outline-minor-mode)
+(add-hook 'sh-mode-hook         'outline-minor-mode)
+(add-hook 'tex-mode-hook        'outline-minor-mode)
 
 (defun find-makefile-then-compile ()
   "Travel up the path, find a Makefile and `compile'."
@@ -103,14 +108,16 @@
 (defun find-makefile-then-ag (lookfor)
   "Travel up the path, find a Makefile and `ag'."
   (interactive (list
-                (read-string (format "Silver search (%s): " (thing-at-point 'word))
-                             nil nil (thing-at-point 'word))))
+                (read-string (format "Silver search (%s): " (thing-at-point 'symbol))
+                             nil nil (thing-at-point 'symbol))))
   (with-temp-buffer
     (ag lookfor (locate-dominating-file default-directory "Makefile"))))
 
 (defun find-makefile-then-ag-dired (lookfor)
   "Travel up the path, find a Makefile and `ag-dired'."
-  (interactive "sSilver search file: ")
+  (interactive (list
+                (read-string (format "Silver search file(%s): " (thing-at-point 'filename))
+                             nil nil (thing-at-point 'filename))))
   (with-temp-buffer
     (ag-dired (locate-dominating-file default-directory "Makefile") lookfor)))
 
@@ -139,6 +146,11 @@
 
 (add-hook
  'java-mode-hook
+ (lambda ()
+   (local-set-key (kbd "C-c C-c") #'find-makefile-then-compile)))
+
+(add-hook
+ 'tex-mode-hook
  (lambda ()
    (local-set-key (kbd "C-c C-c") #'find-makefile-then-compile)))
 
@@ -181,3 +193,10 @@
 ;;load-theme 'misterioso t
 
 ;;(setq compilation-scroll-output t)
+
+(defun json-format ()
+  (interactive)
+  (save-excursion
+    (shell-command-on-region (mark) (point) "python -m json.tool" (buffer-name) t)
+  )
+)
